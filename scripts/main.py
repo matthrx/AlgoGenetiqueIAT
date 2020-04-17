@@ -11,12 +11,17 @@ POPULATION = 100
 MUTATION = 0.1
 CROISEMENT = 0.5
 NB_GENERATIONS = 10
+DEBUG = False
 # Attribution des id
 # Historique des couleurs
 # Noir:0, Blanc:1, Bleu:2, Vert:3, Rouge:4, Violet:5, Marron:6, Jaune:7
 TOFIND = [random.randint(0, NB_COLORS-1) for _ in range(NB_PIONS)]
 ATTEMPT = [random.randint(0, NB_COLORS-1) for _ in range(NB_PIONS)]
 HISTORY = list()
+
+def log(s):
+    if DEBUG:
+        print(s)
 
  # L'algorithme retournera deux valeurs pour chaque solution candidate (ATTEMPT)
  # pc le nombre de couleur correctement placées
@@ -79,9 +84,9 @@ def m_meilleurs(gen):
     """
     m_meilleurs = list()
     for i in range(POPULATION):
-        print("In m_meilleurs {}".format(gen[i]))
         m_meilleurs.append((fitness(gen[i]), gen[i]))
-    m_meilleurs = sorted(m_meilleurs, key=lambda a : a[0]) #- vers + sur les fitness
+    m_meilleurs = sorted(m_meilleurs, key=lambda a : a[0], reverse=False) #- vers + sur les fitness
+    #print(m_meilleurs)
     all_fitness = [each_candidat[0] for each_candidat in m_meilleurs]
     #Si toutes les le fitness est nul alors cela signifie que la combinaison
     #dispose d'une eval nulle donc que son score virtuel par apport à toutes les combinaisons de l'historique est égal
@@ -108,14 +113,14 @@ def mutation(c):
     + une couleur modifié de manière aléatoire
     """
     # Chose two element to swap
-    print("In mutation c is {}".format(c))
+    log("In mutation c is {}".format(c))
     indexes = random.sample(range(NB_PIONS-1), 3)
     c[indexes[0]], c[indexes[1]] = c[indexes[1]], c[indexes[0]] #swap
     toChange = c[indexes[2]]
     while (c[indexes[2]] == toChange): #change la couleur choisie
         new_color = random.randint(0, NB_COLORS-1)
         c[indexes[2]] = new_color
-    print("After mutation : {}".format(c))
+    log("After mutation : {}".format(c))
     return c
 
 # Etape 3
@@ -146,12 +151,12 @@ def create_new_population(g):
         #gère les croisements
         will_cross = random.random()
         if will_cross <= CROISEMENT:
-            print("Croisement")
+            log("Croisement")
             new_population.append(croisement(g[i], g[(i+1)%len(g)]))
             new_population.append(croisement((g[(i+1)%len(g)]), g[i]))
         will_mutate = random.random()
         if will_mutate <= MUTATION:
-            print("Mutation")
+            log("Mutation")
             new_population.append(mutation(g[i]))
         if will_mutate > MUTATION and will_cross > CROISEMENT:
             new_population.append(g[i])
@@ -172,7 +177,7 @@ if __name__ == "__main__":
     HISTORY.append(essai) #HISTORY ne doit jamais etre empty (utilisation de len(HISTORY) en dénominateur)
     candidats_possibles = list()
     iter_essai = 0 #suit le nombre de tentatives jusqu'à trouver le TOFIND
-    print("Le résultat ...{}".format(TOFIND))
+    log("Le résultat ...{}".format(TOFIND))
     # On vérifie que l'essai est différent du TOFIND
     while (essai != TOFIND):
         iter_essai += 1
@@ -181,12 +186,10 @@ if __name__ == "__main__":
         gen = [[random.randint(0, NB_COLORS) for _ in range(NB_PIONS)] for _ in range(POPULATION)]
         #On va génerer plusieurs génrations (NB_GENERATIONS)
         while (nombre_gen < NB_GENERATIONS):
-            print(nombre_gen)
             if nombre_gen != 0:
                 gen = create_new_population(gen)
             gen = m_meilleurs(gen)
             #On doit avoir de nouveau un gen de taille POPULATION
-            print("After...")
             for each_candidat in gen:
                 if each_candidat not in candidats_possibles:
                     candidats_possibles.append(each_candidat)
